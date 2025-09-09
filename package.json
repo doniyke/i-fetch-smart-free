@@ -1,6 +1,6 @@
 {
   "name": "i-fetch-smart",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A smarter fetch wrapper with retries, timeouts, and caching for Node.js & modern JS apps.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
