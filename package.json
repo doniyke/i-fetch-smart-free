@@ -1,15 +1,31 @@
 {
   "name": "i-fetch-smart",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A smarter fetch wrapper with retries, timeouts, and caching for Node.js & modern JS apps.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest --detectOpenHandles --forceExit",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write ."
   },
-  "keywords": [],
+  "keywords": [
+    "fetch",
+    "retry",
+    "timeout",
+    "cache",
+    "typescript",
+    "http",
+    "request"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doniyke/i-fetch-smart-free.git"
+  },
   "author": "Ezema Ikechukwu Davis",
   "license": "ISC",
   "devDependencies": {
