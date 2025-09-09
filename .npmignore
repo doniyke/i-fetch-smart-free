@@ -1,0 +1,22 @@
+# Ignore test files
+tests/
+*.test.ts
+*.test.js
+
+# Ignore configs not needed in npm
+tsconfig.json
+jest.config.js
+*.yml
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore editor/IDE settings
+.vscode/
+.idea/
+
+# Ignore local build artifacts
+npm-debug.log
+yarn-error.log
+*.tgz
