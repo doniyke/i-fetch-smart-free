@@ -36,7 +36,9 @@ function discardBody(response) {
 function isAbortError(error) {
     return error instanceof Error && error.name === 'AbortError';
 }
-async function iFetchSmart(url, options = {}) {
+async function iFetchSmart(url, options = {}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped return until generics land in Stage 3
+) {
     const { retries = 3, timeout = 5000, cacheTtl = 0, retryOn = exports.DEFAULT_RETRY_STATUS_CODES, retryDelay = 500, maxRetryDelay = 30000, ...fetchOptions } = options;
     const cacheEnabled = cacheTtl > 0 && (0, cache_1.isCacheable)(fetchOptions);
     const cacheKey = cacheEnabled ? (0, cache_1.buildCacheKey)(url, fetchOptions) : '';
