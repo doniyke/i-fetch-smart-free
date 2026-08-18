@@ -180,6 +180,10 @@ These are the things most likely to surprise you. All are covered by tests.
   key so a response fetched with one `Authorization` header is never served to a
   request carrying a different one. The cost is a lower hit rate if you send
   per-request headers such as trace IDs.
+- **`cacheTtl` is fixed when the entry is written.** If one call caches a URL
+  for 60s, a later call passing `cacheTtl: 1000` still gets the existing entry
+  until the original 60s elapses — the shorter TTL does not shorten it. Use
+  `clearCache()` if you need to force a refresh.
 - **Cached values are cloned in and out.** Mutating what you get back cannot
   corrupt what the next caller receives.
 - **Empty bodies resolve to `null`.** A `204`, a `205`, or a zero-length body is
