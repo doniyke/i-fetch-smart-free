@@ -51,6 +51,7 @@ function isAbortError(error: unknown): boolean {
 export async function iFetchSmart(
   url: string,
   options: FetchSmartOptions = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped return until generics land in Stage 3
 ): Promise<any> {
   const {
     retries = 3,

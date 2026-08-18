@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The workflow only reads the repository; no write scopes are needed.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      # Report every failing version, not just the first one to fail.
+      fail-fast: false
+      matrix:
+        node: ['18.x', '20.x', '22.x', '24.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          # Caches ~/.npm keyed on package-lock.json.
+          cache: npm
+
+      # `ci` rather than `install`: installs exactly the locked versions and
+      # fails if package.json and package-lock.json disagree.
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # Proves the published artefact still compiles, including .d.ts emit.
+      - run: npm run build

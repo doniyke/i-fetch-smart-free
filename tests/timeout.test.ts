@@ -1,7 +1,6 @@
 import { iFetchSmart } from '../src/index';
 import { clearCache } from '../src/cache';
 import {
-  FetchMock,
   hangingFetch,
   installFetchMock,
   jsonResponse,
