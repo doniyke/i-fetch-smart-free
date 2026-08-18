@@ -69,8 +69,29 @@ describe('error handling', () => {
       expect(typeof (error.cause as Error).message).toBe('string');
     });
 
-    it('handles a completely empty body', async () => {
+    it('treats a completely empty body as null rather than a parse failure', async () => {
       mockFetch.mockImplementation(async () => new Response('', { status: 200 }));
+
+      const promise = iFetchSmart('https://api.test/a', { retries: 0 });
+      await jest.runAllTimersAsync();
+
+      await expect(promise).resolves.toBeNull();
+    });
+
+    it.each([204, 205])(
+      'resolves %i with null instead of throwing',
+      async (status) => {
+        mockFetch.mockImplementation(async () => new Response(null, { status }));
+
+        const promise = iFetchSmart('https://api.test/a', { retries: 0 });
+        await jest.runAllTimersAsync();
+
+        await expect(promise).resolves.toBeNull();
+      }
+    );
+
+    it('still reports a genuinely malformed body as a parse failure', async () => {
+      mockFetch.mockImplementation(async () => textResponse('{"a":', 200, 'application/json'));
 
       const error = await captureError({ retries: 0 });
 

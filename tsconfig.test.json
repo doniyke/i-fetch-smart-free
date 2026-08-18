@@ -5,5 +5,9 @@
     "declaration": false,
     "noEmit": true
   },
+  // `exclude` is inherited from the base config, where it lists "tests" so the
+  // build does not emit them. It must be overridden here or it would win over
+  // `include` and silently leave the test suite unchecked.
+  "exclude": ["node_modules", "dist"],
   "include": ["src", "tests", "demo.ts"]
 }

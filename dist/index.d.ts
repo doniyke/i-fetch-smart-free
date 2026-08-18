@@ -22,10 +22,4 @@ export interface FetchSmartOptions extends RequestInit {
     /** Upper bound on any single backoff wait, in ms. Default 30000. */
     maxRetryDelay?: number;
 }
-/**
- * The parsed response body. Deliberately untyped for now; generics land in
- * Stage 3. Declared as an alias so the lint suppression lives on one line and
- * is erased at compile time rather than leaking into dist/.
- */
-type JsonValue = any;
-export declare function iFetchSmart(url: string, options?: FetchSmartOptions): Promise<JsonValue>;
+export declare function iFetchSmart<T = unknown>(url: string | URL, options?: FetchSmartOptions): Promise<T>;

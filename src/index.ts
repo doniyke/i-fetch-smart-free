@@ -33,12 +33,14 @@ export interface FetchSmartOptions extends RequestInit {
 }
 
 /**
- * The parsed response body. Deliberately untyped for now; generics land in
- * Stage 3. Declared as an alias so the lint suppression lives on one line and
- * is erased at compile time rather than leaking into dist/.
+ * Successful statuses defined to carry no body. Reading them as JSON would fail
+ * even though the request itself succeeded.
+ *
+ * 304 is deliberately absent: it is not an `ok` response, this library has no
+ * conditional-request support, and it surfaces as HTTP_ERROR like any other
+ * non-2xx status.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JsonValue = any;
+const EMPTY_BODY_STATUSES = new Set([204, 205]);
 
 /**
  * An unread body keeps its connection alive in undici, so discard the bodies of
@@ -56,10 +58,47 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
 }
 
-export async function iFetchSmart(
-  url: string,
+/**
+ * Reads the body as JSON, treating a legitimately empty response as `null`
+ * rather than a parse failure — a 204 from a successful DELETE must not throw.
+ */
+async function parseBody(
+  response: Response,
+  href: string,
+  attempts: number
+): Promise<unknown> {
+  if (EMPTY_BODY_STATUSES.has(response.status)) return null;
+
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    throw new FetchSmartError(
+      `Response body from ${href} could not be read`,
+      { code: 'NETWORK_ERROR', url: href, status: response.status, attempts, cause: error }
+    );
+  }
+
+  if (text.trim() === '') return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    const contentType = response.headers?.get('content-type') ?? 'unknown';
+    throw new FetchSmartError(
+      `Response from ${href} was not valid JSON (content-type: ${contentType})`,
+      { code: 'PARSE_ERROR', url: href, status: response.status, attempts, cause: error }
+    );
+  }
+}
+
+export async function iFetchSmart<T = unknown>(
+  url: string | URL,
   options: FetchSmartOptions = {}
-): Promise<JsonValue> {
+): Promise<T> {
+  // `fetch` accepts a URL object, and so does this; everything downstream
+  // (cache keys, error messages) works with the string form.
+  const href = typeof url === 'string' ? url : url.toString();
   const {
     retries = 3,
     timeout = 5000,
@@ -71,11 +110,11 @@ export async function iFetchSmart(
   } = options;
 
   const cacheEnabled = cacheTtl > 0 && isCacheable(fetchOptions);
-  const cacheKey = cacheEnabled ? buildCacheKey(url, fetchOptions) : '';
+  const cacheKey = cacheEnabled ? buildCacheKey(href, fetchOptions) : '';
 
   if (cacheEnabled) {
     const lookup = getCache(cacheKey);
-    if (lookup.hit) return lookup.data;
+    if (lookup.hit) return lookup.data as T;
   }
 
   let attempts = 0;
@@ -85,7 +124,7 @@ export async function iFetchSmart(
     response = await withRetry<Response>(
       (attempt) => {
         attempts = attempt + 1;
-        return fetchWithTimeout(url, fetchOptions, timeout, attempt);
+        return fetchWithTimeout(href, fetchOptions, timeout, attempt);
       },
       {
         retries,
@@ -104,50 +143,35 @@ export async function iFetchSmart(
     if (error instanceof FetchSmartError) throw error;
 
     if (isAbortError(error)) {
-      throw new FetchSmartError(`Request to ${url} was aborted`, {
+      throw new FetchSmartError(`Request to ${href} was aborted`, {
         code: 'ABORTED',
-        url,
+        url: href,
         attempts,
         cause: error
       });
     }
 
     throw new FetchSmartError(
-      `Request to ${url} failed after ${attempts} attempt(s): ${
+      `Request to ${href} failed after ${attempts} attempt(s): ${
         error instanceof Error ? error.message : String(error)
       }`,
-      { code: 'NETWORK_ERROR', url, attempts, cause: error }
+      { code: 'NETWORK_ERROR', url: href, attempts, cause: error }
     );
   }
 
   if (!response.ok) {
     discardBody(response);
     throw new FetchSmartError(
-      `Request to ${url} failed with HTTP ${response.status}`,
-      { code: 'HTTP_ERROR', url, status: response.status, attempts }
+      `Request to ${href} failed with HTTP ${response.status}`,
+      { code: 'HTTP_ERROR', url: href, status: response.status, attempts }
     );
   }
 
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch (error) {
-    const contentType = response.headers?.get('content-type') ?? 'unknown';
-    throw new FetchSmartError(
-      `Response from ${url} was not valid JSON (content-type: ${contentType})`,
-      {
-        code: 'PARSE_ERROR',
-        url,
-        status: response.status,
-        attempts,
-        cause: error
-      }
-    );
-  }
+  const data = await parseBody(response, href, attempts);
 
   if (cacheEnabled) {
     setCache(cacheKey, data, cacheTtl);
   }
 
-  return data;
+  return data as T;
 }

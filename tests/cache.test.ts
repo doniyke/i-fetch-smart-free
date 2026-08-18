@@ -72,7 +72,10 @@ describe('cache', () => {
   it('does not hand callers a reference into the cache', async () => {
     mockFetch.mockImplementation(async () => jsonResponse({ user: 'alice', tags: ['a'] }));
 
-    const first = await iFetchSmart('https://api.test/a', { cacheTtl: 5000 });
+    type Payload = { user: string; tags: string[] };
+    const first = await iFetchSmart<Payload>('https://api.test/a', {
+      cacheTtl: 5000
+    });
     first.user = 'MUTATED';
     first.tags.push('injected');
 

@@ -24,6 +24,13 @@ module.exports = tseslint.config(
   },
   {
     files: ['tests/**/*.ts'],
+    rules: {
+      // Compile-time assertion helpers take parameters they never read.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' }
+      ]
+    },
     languageOptions: {
       globals: {
         jest: 'readonly',
