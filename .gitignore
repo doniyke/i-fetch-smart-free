@@ -4,3 +4,4 @@ dist/
 dist
 .env
 *.tgz
+coverage/
