@@ -33,6 +33,14 @@ export interface FetchSmartOptions extends RequestInit {
 }
 
 /**
+ * The parsed response body. Deliberately untyped for now; generics land in
+ * Stage 3. Declared as an alias so the lint suppression lives on one line and
+ * is erased at compile time rather than leaking into dist/.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JsonValue = any;
+
+/**
  * An unread body keeps its connection alive in undici, so discard the bodies of
  * responses we are about to throw away and retry.
  */
@@ -51,8 +59,7 @@ function isAbortError(error: unknown): boolean {
 export async function iFetchSmart(
   url: string,
   options: FetchSmartOptions = {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped return until generics land in Stage 3
-): Promise<any> {
+): Promise<JsonValue> {
   const {
     retries = 3,
     timeout = 5000,
