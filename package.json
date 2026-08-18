@@ -9,7 +9,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "jest --detectOpenHandles --forceExit",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write ."
   },
@@ -27,11 +29,10 @@
     "url": "https://github.com/doniyke/i-fetch-smart-free.git"
   },
   "author": "Ezema Ikechukwu Davis",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.1",
-    "@types/node-fetch": "^2.6.13",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -41,7 +42,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
-  "dependencies": {
-    "node-fetch": "2.7.0"
+  "engines": {
+    "node": ">=18"
   }
 }
